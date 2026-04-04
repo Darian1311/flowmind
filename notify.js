@@ -52,16 +52,29 @@ function buildMessage(fields) {
   ].join('\n');
 }
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin':  '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Accept',
+};
+
 // ── Server HTTP
 const server = http.createServer((req, res) => {
+  // Preflight CORS
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, CORS_HEADERS);
+    res.end();
+    return;
+  }
+
   // Health check
   if (req.method === 'GET' && req.url === '/') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.writeHead(200, { ...CORS_HEADERS, 'Content-Type': 'text/plain' });
     res.end('FlowMind notify server running.');
     return;
   }
 
-  // Webhook Formspree
+  // Webhook
   if (req.method === 'POST' && req.url === '/webhook') {
     let body = '';
 
@@ -69,19 +82,17 @@ const server = http.createServer((req, res) => {
     req.on('end', async () => {
       try {
         const payload = JSON.parse(body);
-
-        // Formspree trimite datele fie direct, fie sub payload.data
-        const fields = payload.data || payload;
+        const fields  = payload.data || payload;
 
         const message = buildMessage(fields);
         await sendTelegram(message);
 
         console.log(`[${new Date().toISOString()}] Mesaj trimis pe Telegram pentru: ${fields.email || '?'}`);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.writeHead(200, { ...CORS_HEADERS, 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: true }));
       } catch (err) {
         console.error(`[${new Date().toISOString()}] Eroare:`, err.message);
-        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.writeHead(500, { ...CORS_HEADERS, 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: false, error: err.message }));
       }
     });
@@ -89,7 +100,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  res.writeHead(404);
+  res.writeHead(404, CORS_HEADERS);
   res.end('Not found');
 });
 
