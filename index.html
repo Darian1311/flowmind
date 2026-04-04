@@ -1009,11 +1009,17 @@
       btn.textContent = 'Se trimite...';
 
       try {
-        const data = new FormData(form);
-        const res  = await fetch('https://formspree.io/f/mvzvwnwz', {
+        const data = {
+          nume:               form.querySelector('[name="nume"]').value.trim(),
+          email:              form.querySelector('[name="email"]').value.trim(),
+          companie:           form.querySelector('[name="companie"]').value.trim(),
+          solutie_de_interes: form.querySelector('[name="solutie_de_interes"]').value,
+          mesaj:              form.querySelector('[name="mesaj"]').value.trim(),
+        };
+        const res  = await fetch('https://flowmind-wjp7.onrender.com/webhook', {
           method:  'POST',
-          body:    data,
-          headers: { 'Accept': 'application/json' }
+          body:    JSON.stringify(data),
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
         });
 
         if (res.ok) {
