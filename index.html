@@ -1008,35 +1008,24 @@
       btn.disabled = true;
       btn.textContent = 'Se trimite...';
 
-      try {
-        const data = {
-          nume:               form.querySelector('[name="nume"]').value.trim(),
-          email:              form.querySelector('[name="email"]').value.trim(),
-          companie:           form.querySelector('[name="companie"]').value.trim(),
-          solutie_de_interes: form.querySelector('[name="solutie_de_interes"]').value,
-          mesaj:              form.querySelector('[name="mesaj"]').value.trim(),
-        };
-        const res  = await fetch('https://flowmind-wjp7.onrender.com/webhook', {
-          method:  'POST',
-          body:    JSON.stringify(data),
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
-        });
+      const data = {
+        nume:               form.querySelector('[name="nume"]').value.trim(),
+        email:              form.querySelector('[name="email"]').value.trim(),
+        companie:           form.querySelector('[name="companie"]').value.trim(),
+        solutie_de_interes: form.querySelector('[name="solutie_de_interes"]').value,
+        mesaj:              form.querySelector('[name="mesaj"]').value.trim(),
+      };
 
-        if (res.ok) {
-          form.style.display = 'none';
-          document.getElementById('formSuccess').style.display = 'block';
-        } else {
-          const json = await res.json();
-          const msg  = (json.errors || []).map(err => err.message).join(', ') || 'Eroare la trimitere.';
-          btn.textContent = msg;
-          btn.style.background = '#ef4444';
-          btn.disabled = false;
-        }
-      } catch {
-        btn.textContent = 'Eroare de rețea. Încearcă din nou.';
-        btn.style.background = '#ef4444';
-        btn.disabled = false;
-      }
+      // Trimite în background, afișează succes după 2s indiferent
+      fetch('https://flowmind-wjp7.onrender.com/webhook', {
+        method:  'POST',
+        body:    JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+      }).catch(() => {});
+
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      form.style.display = 'none';
+      document.getElementById('formSuccess').style.display = 'block';
     });
 
     // ── Active nav link highlight
