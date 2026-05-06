@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlowMind — Agenție AI</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Base ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-0:    #04060c;
+      --bg-1:    #080c1a;
+      --bg-2:    #0d1120;
+      --bg-airy: #060a16;
+      --border:  rgba(255,255,255,.07);
+      --border-a:rgba(99,102,241,.28);
+      --blue:    #6366f1;
+      --violet:  #8b5cf6;
+      --cyan:    #06b6d4;
+      --emerald: #10b981;
+      --pink:    #ec4899;
+      --glow:    rgba(99,102,241,.38);
+      --text:    #e2e8f0;
+      --muted:   #94a3b8;
+      --white:   #ffffff;
+      --radius:  16px;
+      --tr:      .35s cubic-bezier(.4,0,.2,1);
+      --fh:      'Space Grotesk', system-ui, sans-serif;
+      --fb:      'DM Sans', system-ui, -apple-system, sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--fb);
+      background: var(--bg-0);
+      color: var(--text);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    /* ─── Typography ────────────────────────────────────────────── */
+    h1,h2,h3,h4 { font-family: var(--fh); line-height: 1.15; font-weight: 700; }
+    h1 { font-size: clamp(2.5rem, 6.5vw, 4.4rem); letter-spacing: -.04em; }
+    h2 { font-size: clamp(1.9rem, 4.2vw, 3rem);   letter-spacing: -.03em; }
+    h3 { font-size: 1.15rem; letter-spacing: -.01em; }
+    p  { color: var(--muted); font-size: 1rem; }
+    a  { text-decoration: none; color: inherit; }
+
+    .grad {
+      background: linear-gradient(135deg, #6366f1 0%, #a78bfa 45%, #06b6d4 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .grad-warm {
+      background: linear-gradient(135deg, #f472b6 0%, #a78bfa 50%, #6366f1 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    /* ─── Noise overlay ─────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+      opacity: .35;
+    }
+
+    /* ─── Shared glass card mixin ───────────────────────────────── */
+    .glass {
+      background: rgba(13,17,32,.55);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      border: 1px solid var(--border);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.07),
+        inset 0 -1px 0 rgba(0,0,0,.3),
+        0 8px 32px rgba(0,0,0,.45);
+    }
+
+    /* ─── Navbar ────────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 5%;
+      background: rgba(4,6,12,.65);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      transition: var(--tr);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: .5rem;
+      font-family: var(--fh); font-size: 1.35rem; font-weight: 700; letter-spacing: -.04em;
+    }
+    .nav-logo img { height: 34px; width: auto; display: block; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { font-size: .875rem; font-weight: 500; color: var(--muted); transition: color var(--tr); }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta {
+      padding: .52rem 1.35rem; border-radius: 8px;
+      background: linear-gradient(135deg, var(--blue), var(--violet));
+      font-family: var(--fh); font-size: .82rem; font-weight: 600; color: var(--white);
+      box-shadow: 0 0 20px rgba(99,102,241,.3);
+      transition: opacity var(--tr), transform var(--tr), box-shadow var(--tr);
+      cursor: pointer;
+    }
+    .nav-cta:hover { opacity: .88; transform: translateY(-1px); box-shadow: 0 0 35px rgba(99,102,241,.45); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; }
+    .hamburger span { display: block; width: 24px; height: 2px; background: var(--text); border-radius: 4px; transition: var(--tr); }
+
+    @media(max-width:768px) {
+      .hamburger { display: flex; }
+      .nav-links {
+        display: none; flex-direction: column; position: absolute;
+        top: 100%; left: 0; right: 0;
+        background: rgba(4,6,12,.95); backdrop-filter: blur(24px);
+        border-bottom: 1px solid var(--border); padding: 1.5rem 5%;
+      }
+      .nav-links.open { display: flex; }
+      .nav-cta { display: none; }
+    }
+
+    /* ─── Section wrapper ───────────────────────────────────────── */
+    section { padding: 7rem 5%; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .section-label {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .32rem .95rem; border-radius: 100px;
+      background: rgba(99,102,241,.09); border: 1px solid rgba(99,102,241,.22);
+      font-family: var(--fh); font-size: .72rem; font-weight: 600; color: #a5b4fc;
+      letter-spacing: .08em; text-transform: uppercase; margin-bottom: 1.1rem;
+    }
+    .section-label::before {
+      content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--blue);
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.6)} }
+
+    /* ─── HERO ──────────────────────────────────────────────────── */
+    #hero {
+      position: relative; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      padding: 10rem 5% 6rem; overflow: hidden;
+    }
+    #hero-canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0;
+    }
+    .mesh-orb {
+      position: absolute; border-radius: 50%; pointer-events: none; filter: blur(100px);
+      animation: drift 14s ease-in-out infinite;
+    }
+    .mesh-1 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(99,102,241,.16), transparent 70%); top: -180px; left: -120px; }
+    .mesh-2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(139,92,246,.13), transparent 70%); bottom: -80px; right: -100px; animation-delay: -5s; }
+    .mesh-3 { width: 380px; height: 380px; background: radial-gradient(circle, rgba(6,182,212,.09), transparent 70%); top: 45%; left: 50%; transform: translate(-50%,-50%); animation-delay: -3s; }
+    @keyframes drift {
+      0%,100% { transform: translateY(0) scale(1); }
+      33%      { transform: translateY(-28px) scale(1.05) rotate(3deg); }
+      66%      { transform: translateY(18px) scale(.97) rotate(-2deg); }
+    }
+    #hero::after {
+      content: ''; position: absolute; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(99,102,241,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,.04) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 75% 55% at 50% 50%, black 20%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 75% 55% at 50% 50%, black 20%, transparent 100%);
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 860px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .38rem 1.1rem; border-radius: 100px;
+      background: rgba(99,102,241,.07); border: 1px solid rgba(99,102,241,.28);
+      font-size: .8rem; font-weight: 500; color: #a5b4fc; margin-bottom: 2rem;
+    }
+    .hero-badge .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #6ee7b7; box-shadow: 0 0 10px #6ee7b7;
+      animation: blink 2s ease-in-out infinite;
+    }
+    #hero h1 { margin-bottom: 1.4rem; }
+    #hero p.sub {
+      font-size: clamp(1rem, 2.2vw, 1.18rem); color: var(--muted);
+      max-width: 620px; margin: 0 auto 2.8rem; line-height: 1.75;
+    }
+    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      padding: .9rem 2.2rem; border-radius: 10px;
+      background: linear-gradient(135deg, var(--blue), var(--violet));
+      color: var(--white); font-family: var(--fh); font-weight: 600; font-size: .95rem;
+      box-shadow: 0 0 32px var(--glow);
+      transition: transform var(--tr), box-shadow var(--tr);
+      cursor: pointer;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 55px var(--glow); }
+    .btn-ghost {
+      padding: .9rem 2.2rem; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.12); color: var(--text);
+      font-family: var(--fh); font-weight: 500; font-size: .95rem;
+      transition: border-color var(--tr), background var(--tr);
+      cursor: pointer;
+    }
+    .btn-ghost:hover { border-color: var(--border-a); background: rgba(99,102,241,.06); }
+
+    .hero-stats {
+      display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;
+      margin-top: 4.5rem; padding-top: 3rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .stat-item { text-align: center; }
+    .stat-item .num {
+      font-family: var(--fh); font-size: 2.2rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--white), #a5b4fc);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-item .label { font-size: .8rem; color: var(--muted); margin-top: .25rem; }
+
+    /* ─── SOLUTIONS ─────────────────────────────────────────────── */
+    #solutii { background: var(--bg-1); }
+    .solutions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.4rem; margin-top: 3.5rem;
+    }
+    .sol-card {
+      position: relative; overflow: hidden; border-radius: var(--radius);
+      background: rgba(13,17,32,.6);
+      backdrop-filter: blur(20px) saturate(150%);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 8px 32px rgba(0,0,0,.4);
+      padding: 2rem; cursor: default;
+      transition: transform var(--tr), box-shadow var(--tr), border-color var(--tr);
+    }
+    .sol-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(99,102,241,.3);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 24px 60px rgba(99,102,241,.14);
+    }
+    /* Top gradient line */
+    .sol-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(99,102,241,.6), transparent);
+      opacity: 0; transition: opacity var(--tr);
+    }
+    .sol-card:hover::before { opacity: 1; }
+    /* Light sweep */
+    .sol-card::after {
+      content: ''; position: absolute;
+      top: -60%; left: -80%; width: 45%; height: 220%;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,.05), transparent);
+      transform: skewX(-18deg);
+      transition: left .65s cubic-bezier(.4,0,.2,1);
+      pointer-events: none;
+    }
+    .sol-card:hover::after { left: 160%; }
+
+    /* Noise on card */
+    .sol-card-noise {
+      position: absolute; inset: 0; border-radius: var(--radius); pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+      opacity: .6;
+    }
+
+    .sol-icon {
+      position: relative; z-index: 1;
+      width: 52px; height: 52px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.3rem;
+    }
+    .ic-blue   { background: rgba(99,102,241,.12);  border: 1px solid rgba(99,102,241,.22); }
+    .ic-violet { background: rgba(139,92,246,.12);  border: 1px solid rgba(139,92,246,.22); }
+    .ic-cyan   { background: rgba(6,182,212,.12);   border: 1px solid rgba(6,182,212,.22); }
+    .ic-pink   { background: rgba(236,72,153,.12);  border: 1px solid rgba(236,72,153,.22); }
+    .ic-blue svg   { stroke: #818cf8; }
+    .ic-violet svg { stroke: #a78bfa; }
+    .ic-cyan svg   { stroke: #22d3ee; }
+    .ic-pink svg   { stroke: #f472b6; }
+    .sol-card h3 { position: relative; z-index: 1; color: var(--white); margin-bottom: .55rem; font-size: 1.1rem; }
+    .sol-card p  { position: relative; z-index: 1; font-size: .875rem; line-height: 1.65; }
+    .sol-tag {
+      position: relative; z-index: 1;
+      display: inline-block; margin-top: 1.2rem;
+      padding: .28rem .75rem; border-radius: 6px;
+      background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.18);
+      font-size: .7rem; font-weight: 600; color: #a5b4fc; font-family: var(--fh);
+      letter-spacing: .04em;
+    }
+
+    /* ─── SIMULATOR CONSOLE ────────────────────────────────────── */
+    #ai-demo {
+      background: var(--bg-0);
+      position: relative; overflow: hidden;
+      padding: 7rem 5%;
+    }
+    #ai-demo::before {
+      content: ''; position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+      width: 560px; height: 380px; border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(6,182,212,.05), transparent 65%);
+      pointer-events: none;
+    }
+    .sim-header { text-align: center; margin-bottom: 3.5rem; position: relative; z-index: 1; }
+    /* ── Console Shell ── */
+    .sim-console {
+      max-width: 1060px; margin: 0 auto; position: relative; z-index: 1;
+      background: rgba(5,7,15,.95);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px; overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 40px 80px rgba(0,0,0,.65), 0 0 0 1px rgba(99,102,241,.06);
+      transition: box-shadow .5s ease;
+    }
+    .sim-console[data-state="processing"] { box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 40px 80px rgba(0,0,0,.65), 0 0 0 1px rgba(6,182,212,.16), 0 0 28px rgba(6,182,212,.04); }
+    .sim-console[data-state="responding"] { box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 40px 80px rgba(0,0,0,.65), 0 0 0 1px rgba(99,102,241,.16), 0 0 28px rgba(99,102,241,.04); }
+
+    .sim-topbar {
+      display: flex; align-items: center; gap: 1rem; padding: .82rem 1.4rem;
+      background: rgba(255,255,255,.02); border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .sim-dots { display: flex; gap: .4rem; }
+    .sim-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .sim-dot-r { background: rgba(239,68,68,.42); } .sim-dot-y { background: rgba(234,179,8,.42); } .sim-dot-g { background: rgba(34,197,94,.42); }
+    .sim-topbar-title { flex: 1; text-align: center; font-family: var(--fh); font-size: .7rem; font-weight: 500; color: #2d3748; letter-spacing: .06em; }
+    .sim-state-chip {
+      font-family: var(--fh); font-size: .6rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      padding: .18rem .58rem; border-radius: 100px;
+      background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); color: #2d3748;
+      transition: background .35s, color .35s, border-color .35s;
+    }
+    [data-state="listening"]  .sim-state-chip { color: #a5b4fc; background: rgba(99,102,241,.07); border-color: rgba(99,102,241,.18); }
+    [data-state="processing"] .sim-state-chip { color: #67e8f9; background: rgba(6,182,212,.07); border-color: rgba(6,182,212,.18); }
+    [data-state="responding"] .sim-state-chip { color: #c4b5fd; background: rgba(139,92,246,.07); border-color: rgba(139,92,246,.18); }
+
+    .sim-body { display: grid; grid-template-columns: 230px 1px 1fr; min-height: 430px; }
+    @media(max-width:720px) { .sim-body { grid-template-columns: 1fr; } .sim-divider { display: none; } }
+    .sim-divider { background: rgba(255,255,255,.05); }
+
+    .sim-left {
+      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      padding: 1.8rem 1.1rem; background: rgba(0,0,0,.2);
+    }
+    .sim-left-top { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    .sim-orb-stage { position: relative; width: 118px; height: 118px; }
+    .sim-orb-ring { position: absolute; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+    .sim-orb-ring-1 { width: 118px; height: 118px; border: 1px solid rgba(99,102,241,.18); }
+    .sim-orb-ring-2 { width:  93px; height:  93px; border: 1px solid rgba(139,92,246,.13); }
+    .sim-orb-ring-3 { width:  68px; height:  68px; border: 1px solid rgba(6,182,212,.1); }
+
+    [data-state="idle"]       .sim-orb-ring-1 { animation: simring 3.8s ease-in-out infinite; }
+    [data-state="idle"]       .sim-orb-ring-2 { animation: simring 3.8s ease-in-out infinite .6s; }
+    [data-state="idle"]       .sim-orb-ring-3 { animation: simring 3.8s ease-in-out infinite 1.2s; }
+    [data-state="listening"]  .sim-orb-ring-1 { animation: simring 2.2s ease-in-out infinite; border-color: rgba(99,102,241,.4); }
+    [data-state="listening"]  .sim-orb-ring-2 { animation: simring 2.2s ease-in-out infinite .28s; border-color: rgba(139,92,246,.3); }
+    [data-state="listening"]  .sim-orb-ring-3 { animation: simring 2.2s ease-in-out infinite .56s; border-color: rgba(6,182,212,.25); }
+    [data-state="processing"] .sim-orb-ring-1 { animation: simring .7s ease-in-out infinite; border-color: rgba(6,182,212,.62); }
+    [data-state="processing"] .sim-orb-ring-2 { animation: simring .7s ease-in-out infinite .12s; border-color: rgba(99,102,241,.52); }
+    [data-state="processing"] .sim-orb-ring-3 { animation: simring .7s ease-in-out infinite .24s; border-color: rgba(139,92,246,.42); }
+    [data-state="responding"] .sim-orb-ring-1 { animation: simring 1.1s ease-in-out infinite; border-color: rgba(139,92,246,.52); }
+    [data-state="responding"] .sim-orb-ring-2 { animation: simring 1.1s ease-in-out infinite .18s; border-color: rgba(99,102,241,.42); }
+    [data-state="responding"] .sim-orb-ring-3 { animation: simring 1.1s ease-in-out infinite .36s; border-color: rgba(6,182,212,.32); }
+    @keyframes simring { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.55} 50%{transform:translate(-50%,-50%) scale(1.14);opacity:1} }
+
+    .sim-orb-core {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 56px; height: 56px; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, rgba(139,92,246,.86), rgba(99,102,241,.7) 45%, rgba(6,182,212,.4) 80%);
+      box-shadow: 0 0 18px rgba(99,102,241,.36), 0 0 38px rgba(99,102,241,.1), inset 0 1px 0 rgba(255,255,255,.15);
+      display: flex; align-items: center; justify-content: center;
+      transition: box-shadow .4s ease;
+    }
+    [data-state="idle"]       .sim-orb-core { animation: orbBreath 3.4s ease-in-out infinite; }
+    [data-state="listening"]  .sim-orb-core { animation: orbBreath 2s ease-in-out infinite; box-shadow: 0 0 26px rgba(99,102,241,.48), 0 0 52px rgba(99,102,241,.16), inset 0 1px 0 rgba(255,255,255,.18); }
+    [data-state="processing"] .sim-orb-core { animation: orbProcess .6s ease-in-out infinite; box-shadow: 0 0 32px rgba(6,182,212,.62), 0 0 65px rgba(6,182,212,.2), inset 0 1px 0 rgba(255,255,255,.2); }
+    [data-state="responding"] .sim-orb-core { animation: orbBreath 1.1s ease-in-out infinite; box-shadow: 0 0 28px rgba(139,92,246,.58), 0 0 60px rgba(139,92,246,.2), inset 0 1px 0 rgba(255,255,255,.18); }
+    @keyframes orbBreath  { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.07)} }
+    @keyframes orbProcess { 0%,100%{transform:translate(-50%,-50%) scale(.93)} 50%{transform:translate(-50%,-50%) scale(1.11)} }
+
+    .orb-bars { display: flex; align-items: center; gap: 2px; }
+    .orb-bar { width: 2.5px; background: rgba(255,255,255,.72); border-radius: 2px; }
+    .orb-bar:nth-child(1){height:5px} .orb-bar:nth-child(2){height:10px} .orb-bar:nth-child(3){height:16px}
+    .orb-bar:nth-child(4){height:20px} .orb-bar:nth-child(5){height:16px} .orb-bar:nth-child(6){height:10px}
+    .orb-bar:nth-child(7){height:5px}
+    [data-state="idle"]       .orb-bar { animation: barIdle    3.2s ease-in-out infinite; }
+    [data-state="listening"]  .orb-bar { animation: barIdle    1.9s ease-in-out infinite; }
+    [data-state="processing"] .orb-bar { animation: barActive  .48s ease-in-out infinite; }
+    [data-state="responding"] .orb-bar { animation: barRespond  .9s ease-in-out infinite; }
+    @keyframes barIdle    { 0%,100%{transform:scaleY(.2)}  50%{transform:scaleY(.48)} }
+    @keyframes barActive  { 0%,100%{transform:scaleY(.35)} 50%{transform:scaleY(1)} }
+    @keyframes barRespond { 0%,100%{transform:scaleY(.42)} 50%{transform:scaleY(.88)} }
+    .orb-bar:nth-child(1){animation-delay:0s}   .orb-bar:nth-child(2){animation-delay:.09s}
+    .orb-bar:nth-child(3){animation-delay:.18s} .orb-bar:nth-child(4){animation-delay:.14s}
+    .orb-bar:nth-child(5){animation-delay:.23s} .orb-bar:nth-child(6){animation-delay:.05s}
+    .orb-bar:nth-child(7){animation-delay:.28s}
+
+    .sim-state-text { font-family: var(--fh); font-size: .65rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #2d3748; transition: color .35s; }
+    [data-state="listening"]  .sim-state-text { color: #818cf8; }
+    [data-state="processing"] .sim-state-text { color: #22d3ee; }
+    [data-state="responding"] .sim-state-text { color: #a78bfa; }
+
+    .sim-badges { width: 100%; display: flex; flex-direction: column; gap: .42rem; }
+    .sim-badge {
+      width: 100%; padding: .38rem .62rem; border-radius: 7px;
+      font-family: var(--fh); font-size: .62rem; font-weight: 600;
+      display: flex; align-items: center; gap: .42rem;
+      opacity: 0; transform: translateY(5px); transition: opacity .38s ease, transform .38s ease;
+    }
+    .sim-badge.show { opacity: 1; transform: translateY(0); }
+    .sim-badge-crm { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.16); color: #6ee7b7; }
+    .sim-badge-cal { background: rgba(6,182,212,.08);  border: 1px solid rgba(6,182,212,.16);  color: #67e8f9; }
+    .sim-badge-dot { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; }
+    .sim-badge-crm .sim-badge-dot { background: #10b981; box-shadow: 0 0 4px #10b981; }
+    .sim-badge-cal .sim-badge-dot { background: var(--cyan); box-shadow: 0 0 4px var(--cyan); }
+
+    .sim-metrics { width: 100%; padding-top: .9rem; border-top: 1px solid rgba(255,255,255,.045); }
+    .sim-metric { display: flex; justify-content: space-between; padding: .18rem 0; font-size: .6rem; color: #1e2a3a; }
+    .sim-metric-val { font-family: var(--fh); color: #2d3d52; font-weight: 600; }
+
+    .sim-right { display: flex; flex-direction: column; }
+    .sim-chat-area {
+      flex: 1; overflow-y: auto; padding: 1.3rem 1.3rem;
+      display: flex; flex-direction: column; gap: .72rem;
+      min-height: 280px; max-height: 310px; scroll-behavior: smooth;
+    }
+    .sim-chat-area::-webkit-scrollbar { width: 3px; }
+    .sim-chat-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,.06); border-radius: 2px; }
+
+    .sim-msg { display: flex; flex-direction: column; gap: .26rem; max-width: 82%; animation: msgIn .22s ease both; }
+    @keyframes msgIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+    .sim-msg-user { align-self: flex-end; align-items: flex-end; }
+    .sim-msg-bot  { align-self: flex-start; }
+    .sim-msg-label { font-family: var(--fh); font-size: .58rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: #1e2a3a; padding: 0 .22rem; }
+    .sim-msg-user .sim-msg-label { color: rgba(99,102,241,.4); }
+    .sim-bubble { padding: .58rem .88rem; border-radius: 11px; font-size: .855rem; line-height: 1.62; }
+    .sim-bubble-user { background: rgba(99,102,241,.13); border: 1px solid rgba(99,102,241,.18); color: #c7d2fe; border-bottom-right-radius: 3px; }
+    .sim-bubble-bot  { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.065); color: var(--text); border-bottom-left-radius: 3px; }
+
+    .sim-typing {
+      align-self: flex-start; padding: .58rem .88rem; border-radius: 11px; border-bottom-left-radius: 3px;
+      background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.065);
+      display: flex; align-items: center; gap: 4px; animation: msgIn .2s ease both;
+    }
+    .sim-typing span { width: 4px; height: 4px; border-radius: 50%; background: #334155; animation: tdot 1.2s ease-in-out infinite; }
+    .sim-typing span:nth-child(2){animation-delay:.18s} .sim-typing span:nth-child(3){animation-delay:.36s}
+    @keyframes tdot { 0%,60%,100%{transform:translateY(0);opacity:.3} 30%{transform:translateY(-4px);opacity:1} }
+
+    .sim-hint { align-self: flex-start; font-family: var(--fh); font-size: .6rem; color: #22d3ee; letter-spacing: .05em; padding: 0 .22rem; opacity: 0; transition: opacity .28s ease; }
+    .sim-hint.show { opacity: 1; }
+
+    .sim-chips-area { padding: .65rem 1.3rem .5rem; border-top: 1px solid rgba(255,255,255,.05); display: flex; flex-wrap: wrap; gap: .42rem; transition: opacity .3s ease; }
+    .sim-chips-area.disabled { opacity: .25; pointer-events: none; }
+    .sim-chip {
+      padding: .33rem .82rem; border-radius: 100px; cursor: pointer;
+      background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.08);
+      font-family: var(--fh); font-size: .7rem; font-weight: 500; color: #475569;
+      transition: background var(--tr), border-color var(--tr), color var(--tr), transform var(--tr); white-space: nowrap;
+    }
+    .sim-chip:hover { background: rgba(99,102,241,.08); border-color: rgba(99,102,241,.28); color: #a5b4fc; transform: translateY(-1px); }
+
+    .sim-input-area { padding: .65rem 1.1rem 1rem; border-top: 1px solid rgba(255,255,255,.05); }
+    .sim-input-wrap {
+      display: flex; align-items: center; gap: .52rem;
+      background: rgba(255,255,255,.022); border: 1px solid rgba(255,255,255,.065);
+      border-radius: 9px; padding: .48rem .48rem .48rem .9rem;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .sim-input-wrap:focus-within { border-color: rgba(99,102,241,.32); box-shadow: 0 0 0 3px rgba(99,102,241,.06); }
+    [data-state="listening"] .sim-input-wrap { border-color: rgba(99,102,241,.26); box-shadow: 0 0 0 3px rgba(99,102,241,.05); }
+    .sim-input { flex: 1; background: none; border: none; outline: none; font-family: var(--fb); font-size: .875rem; color: var(--text); caret-color: #818cf8; }
+    .sim-input::placeholder { color: #1e2a3a; }
+    .sim-send {
+      flex-shrink: 0; width: 32px; height: 32px; border-radius: 7px; border: none; cursor: pointer;
+      background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.15);
+      display: flex; align-items: center; justify-content: center;
+      transition: background var(--tr), border-color var(--tr), transform var(--tr);
+    }
+    .sim-send:hover:not(:disabled) { background: rgba(99,102,241,.2); border-color: rgba(99,102,241,.32); }
+    .sim-send:active:not(:disabled) { transform: scale(.92); }
+    .sim-send:disabled { opacity: .25; cursor: not-allowed; }
+
+    /* ─── SERVICES — airy ───────────────────────────────────────── */
+    #servicii {
+      background: linear-gradient(180deg, var(--bg-1) 0%, rgba(8,12,26,.95) 100%);
+      position: relative;
+    }
+    #servicii::after {
+      content: ''; position: absolute; top: -1px; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(99,102,241,.2), transparent);
+    }
+    .services-wrap {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4.5rem; align-items: center; margin-top: 3.5rem;
+    }
+    @media(max-width:860px) { .services-wrap { grid-template-columns: 1fr; gap: 2.5rem; } }
+
+    .services-list { display: flex; flex-direction: column; gap: 1rem; }
+    .srv-item {
+      display: flex; align-items: flex-start; gap: 1rem;
+      padding: 1.4rem 1.6rem; border-radius: var(--radius);
+      background: rgba(13,17,32,.6);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 4px 20px rgba(0,0,0,.3);
+      transition: border-color var(--tr), transform var(--tr), box-shadow var(--tr);
+      cursor: default; overflow: hidden; position: relative;
+    }
+    .srv-item::after {
+      content: ''; position: absolute;
+      top: -50%; left: -80%; width: 40%; height: 200%;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,.04), transparent);
+      transform: skewX(-18deg);
+      transition: left .6s ease;
+    }
+    .srv-item:hover { border-color: rgba(99,102,241,.28); transform: translateX(6px); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 30px rgba(99,102,241,.1); }
+    .srv-item:hover::after { left: 160%; }
+
+    .srv-num {
+      flex-shrink: 0; width: 36px; height: 36px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--blue), var(--violet));
+      font-family: var(--fh); font-size: .78rem; font-weight: 700; color: var(--white);
+    }
+    .srv-item h4 { color: var(--white); font-family: var(--fh); font-size: 1rem; margin-bottom: .25rem; font-weight: 600; }
+    .srv-item p  { font-size: .85rem; line-height: 1.6; }
+
+    .services-visual {
+      position: relative; border-radius: 20px; overflow: hidden;
+      background: rgba(13,17,32,.65);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 20px 60px rgba(0,0,0,.45);
+      padding: 2.5rem; min-height: 440px;
+      display: flex; flex-direction: column; justify-content: center; gap: .9rem;
+    }
+    .services-visual::before {
+      content: ''; position: absolute; top: -80px; right: -80px;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(99,102,241,.18), transparent 70%);
+      pointer-events: none;
+    }
+    .flow-node {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; gap: 1rem;
+      padding: .9rem 1.15rem; border-radius: 12px;
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+      animation: slideIn .6s ease both;
+    }
+    .flow-node:nth-child(1){animation-delay:.1s}.flow-node:nth-child(2){animation-delay:.25s}
+    .flow-node:nth-child(3){animation-delay:.4s}.flow-node:nth-child(4){animation-delay:.55s}
+    .flow-node:nth-child(5){animation-delay:.7s}
+    @keyframes slideIn { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
+    .flow-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .fd-blue   { background: var(--blue);   box-shadow: 0 0 8px var(--blue); }
+    .fd-violet { background: var(--violet); box-shadow: 0 0 8px var(--violet); }
+    .fd-cyan   { background: var(--cyan);   box-shadow: 0 0 8px var(--cyan); }
+    .fd-green  { background: #22c55e;       box-shadow: 0 0 8px #22c55e; }
+    .fd-orange { background: #f97316;       box-shadow: 0 0 8px #f97316; }
+    .flow-node span { font-size: .84rem; color: var(--text); font-weight: 500; font-family: var(--fb); }
+    .flow-badge { margin-left: auto; font-size: .68rem; padding: .18rem .6rem; border-radius: 6px; font-weight: 600; font-family: var(--fh); }
+    .fb-ok   { background: rgba(34,197,94,.12);  color: #86efac; border: 1px solid rgba(34,197,94,.2); }
+    .fb-live { background: rgba(99,102,241,.12);  color: #a5b4fc; border: 1px solid rgba(99,102,241,.2); }
+    .fb-ai   { background: rgba(6,182,212,.12);   color: #67e8f9; border: 1px solid rgba(6,182,212,.2); }
+
+    /* ─── ABOUT — airy light section ───────────────────────────── */
+    #despre {
+      background: linear-gradient(180deg, var(--bg-0) 0%, #080a18 50%, var(--bg-0) 100%);
+      position: relative; overflow: hidden;
+    }
+    #despre::before {
+      content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 800px; height: 500px; border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(139,92,246,.07), transparent 65%);
+      pointer-events: none;
+    }
+    .about-grid {
+      display: grid; grid-template-columns: 1.1fr 1fr;
+      gap: 5rem; align-items: center; margin-top: 3.5rem;
+      position: relative; z-index: 1;
+    }
+    @media(max-width:860px) { .about-grid { grid-template-columns: 1fr; gap: 2.5rem; } }
+
+    .about-text h2 { margin-bottom: 1.2rem; }
+    .about-text p  { font-size: .97rem; margin-bottom: .9rem; line-height: 1.7; }
+    .about-values { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem; }
+    .value-card {
+      padding: 1.2rem; border-radius: 12px;
+      background: rgba(13,17,32,.6);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      transition: border-color var(--tr), transform var(--tr);
+    }
+    .value-card:hover { border-color: rgba(99,102,241,.25); transform: translateY(-2px); }
+    .value-icon { width: 32px; height: 32px; margin-bottom: .6rem; }
+    .value-card h4 { color: var(--white); font-family: var(--fh); font-size: .9rem; margin-bottom: .3rem; font-weight: 600; }
+    .value-card p  { font-size: .8rem; line-height: 1.55; }
+
+    .about-image {
+      position: relative; border-radius: 20px; overflow: hidden;
+      background: rgba(13,17,32,.65);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 20px 60px rgba(0,0,0,.45);
+      padding: 2.5rem; text-align: center;
+    }
+    .about-image::after {
+      content: ''; position: absolute; bottom: -60px; left: -60px;
+      width: 240px; height: 240px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(139,92,246,.18), transparent 70%);
+      pointer-events: none;
+    }
+    .founder-photo-wrap { position: relative; z-index: 1; width: 170px; height: 170px; margin: 0 auto 1.6rem; }
+    .founder-photo-wrap::before {
+      content: ''; position: absolute; inset: -3px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--violet), var(--cyan)); z-index: 0;
+    }
+    .founder-photo-wrap::after {
+      content: ''; position: absolute; inset: -3px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--violet), var(--cyan));
+      filter: blur(20px); opacity: .5; z-index: -1;
+    }
+    .founder-photo {
+      position: relative; z-index: 1; width: 100%; height: 100%;
+      border-radius: 50%; object-fit: cover; border: 3px solid rgba(13,17,32,.9); display: block;
+    }
+    .founder-name { position: relative; z-index: 1; font-family: var(--fh); font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -.02em; }
+    .founder-role {
+      display: inline-flex; align-items: center; gap: .4rem; margin-top: .5rem;
+      padding: .28rem .9rem; border-radius: 100px;
+      background: linear-gradient(135deg, rgba(99,102,241,.18), rgba(139,92,246,.18));
+      border: 1px solid rgba(99,102,241,.28);
+      font-family: var(--fh); font-size: .75rem; font-weight: 600; color: #a5b4fc;
+      letter-spacing: .04em; text-transform: uppercase; position: relative; z-index: 1;
+    }
+    .founder-role::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+    .about-tagline { position: relative; z-index: 1; }
+    .pill-row { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1.4rem; justify-content: center; }
+    .pill {
+      padding: .3rem .85rem; border-radius: 100px;
+      background: rgba(99,102,241,.09); border: 1px solid rgba(99,102,241,.18);
+      font-size: .72rem; font-weight: 600; color: #a5b4fc; font-family: var(--fh);
+    }
+
+    /* ─── CONTACT — Activation Portal ──────────────────────────── */
+    #contact {
+      background: var(--bg-0);
+      position: relative; overflow: hidden;
+      padding: 8rem 5% 7rem;
+    }
+    /* Single, restrained ambient glow — not a disco ball */
+    #contact::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 400px; border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(99,102,241,.07), transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Two-column portal layout */
+    .portal-grid {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 1fr 1.1fr;
+      gap: 5rem; align-items: start;
+      max-width: 1100px; margin: 0 auto;
+    }
+    @media(max-width:900px) { .portal-grid { grid-template-columns: 1fr; gap: 3rem; } }
+
+    /* Left: copy */
+    .portal-copy { padding-top: .5rem; }
+    .portal-copy h2 { margin-bottom: 1.1rem; }
+    .portal-copy > p { font-size: .97rem; line-height: 1.75; margin-bottom: 2rem; max-width: 420px; }
+    .portal-features { list-style: none; display: flex; flex-direction: column; gap: .75rem; margin-bottom: 2.5rem; }
+    .portal-features li {
+      display: flex; align-items: center; gap: .75rem;
+      font-size: .88rem; color: var(--text);
+    }
+    .portal-features li::before {
+      content: ''; flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3);
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12' fill='none' stroke='%236ee7b7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-size: 11px; background-repeat: no-repeat; background-position: center;
+    }
+    .portal-trust {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .9rem 1.2rem; border-radius: 12px;
+      background: rgba(255,255,255,.02); border: 1px solid rgba(255,255,255,.07);
+      max-width: 380px;
+    }
+    .portal-trust-icon {
+      width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+      background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .portal-trust-text { font-size: .8rem; color: var(--muted); line-height: 1.5; }
+    .portal-trust-text strong { color: var(--text); display: block; font-family: var(--fh); font-size: .82rem; }
+
+    /* Right: form card */
+    .portal-card {
+      background: rgba(8,12,26,.8);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 20px; overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 32px 64px rgba(0,0,0,.5);
+    }
+    .portal-card-header {
+      padding: 1.2rem 1.8rem;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,.02);
+    }
+    .portal-step-label {
+      font-family: var(--fh); font-size: .72rem; font-weight: 600; color: var(--muted);
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+    .portal-step-dots { display: flex; gap: .4rem; }
+    .psd { width: 8px; height: 8px; border-radius: 50%; }
+    .psd-1 { background: #ef4444; } .psd-2 { background: #eab308; } .psd-3 { background: #22c55e; }
+
+    .portal-form { padding: 1.8rem; }
+    .pf-group { margin-bottom: 1.3rem; }
+    .pf-group label {
+      display: block; font-family: var(--fh); font-size: .73rem; font-weight: 600;
+      color: #64748b; letter-spacing: .06em; text-transform: uppercase; margin-bottom: .55rem;
+    }
+    .pf-group input,
+    .pf-group select {
+      width: 100%; padding: .82rem 1rem;
+      background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px; color: var(--text); font-size: .9rem; font-family: var(--fb);
+      transition: border-color var(--tr), box-shadow var(--tr); outline: none;
+      -webkit-appearance: none; appearance: none;
+    }
+    .pf-group input:focus,
+    .pf-group select:focus {
+      border-color: rgba(99,102,241,.5); box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+    }
+    .pf-group select option { background: #080c1a; }
+    .pf-group input::placeholder { color: #334155; }
+
+    /* Contact method radio grid */
+    .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; }
+    .method-opt {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .65rem .9rem; border-radius: 8px;
+      background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.07);
+      font-size: .85rem; color: var(--muted); cursor: pointer;
+      transition: border-color var(--tr), background var(--tr), color var(--tr);
+    }
+    .method-opt input[type="radio"] { display: none; }
+    .method-opt:has(input:checked) {
+      border-color: rgba(99,102,241,.45);
+      background: rgba(99,102,241,.08);
+      color: var(--white);
+    }
+    .method-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      border: 1.5px solid #475569;
+      transition: border-color var(--tr), background var(--tr), box-shadow var(--tr);
+    }
+    .method-opt:has(input:checked) .method-dot {
+      border-color: var(--blue); background: var(--blue); box-shadow: 0 0 6px rgba(99,102,241,.5);
+    }
+
+    /* CTA button */
+    .portal-cta {
+      width: 100%; padding: 1rem 1.5rem; margin-top: 1.5rem;
+      border-radius: 10px; border: none; cursor: pointer;
+      background: linear-gradient(135deg, #4f52d3, #7c3aed);
+      color: var(--white); font-family: var(--fh); font-size: .95rem; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: .6rem;
+      transition: opacity var(--tr), transform var(--tr), box-shadow var(--tr);
+      position: relative; overflow: hidden;
+    }
+    .portal-cta::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.06), transparent);
+      border-radius: inherit;
+    }
+    .portal-cta:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 12px 36px rgba(79,82,211,.35); }
+    .portal-cta:active { transform: translateY(0); }
+    .portal-cta:disabled { cursor: not-allowed; opacity: .7; transform: none; }
+
+    /* Activating state */
+    .portal-cta.activating {
+      background: linear-gradient(270deg, #4f52d3, #7c3aed, #0891b2, #7c3aed, #4f52d3);
+      background-size: 300% 100%;
+      animation: sweep 2.5s linear infinite;
+    }
+    @keyframes sweep { 0%{background-position:0% 50%} 100%{background-position:100% 50%} }
+
+    .cta-spinner {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.25);
+      border-top-color: white;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Success state */
+    .portal-success {
+      display: none; padding: 2.5rem 1.8rem; text-align: center;
+    }
+    .success-ring {
+      width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 1.2rem;
+      background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.25);
+      display: flex; align-items: center; justify-content: center;
+      animation: ringpop .5s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes ringpop { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+    .portal-success h3 { font-family: var(--fh); color: var(--white); font-size: 1.15rem; margin-bottom: .5rem; }
+    .portal-success p { font-size: .88rem; line-height: 1.65; }
+
+    /* Bottom contact strip */
+    .contact-strip {
+      display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
+      margin-top: 3rem; padding-top: 2.5rem;
+      border-top: 1px solid rgba(255,255,255,.05);
+      position: relative; z-index: 1;
+    }
+    .ci-item { display: flex; align-items: center; gap: .65rem; font-size: .84rem; color: var(--muted); }
+    .ci-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ─── Footer ────────────────────────────────────────────────── */
+    footer {
+      background: var(--bg-1); border-top: 1px solid var(--border);
+      padding: 2.5rem 5%;
+    }
+    .footer-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-logo { display: flex; align-items: center; gap: .5rem; font-family: var(--fh); font-size: 1.05rem; font-weight: 700; }
+    .footer-logo img { height: 28px; width: auto; display: block; }
+    footer p { font-size: .78rem; color: var(--muted); }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { font-size: .8rem; color: var(--muted); transition: color var(--tr); }
+    .footer-links a:hover { color: var(--blue); }
+
+    /* ─── Reveal animation ──────────────────────────────────────── */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── Scrollbar ─────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg-0); }
+    ::-webkit-scrollbar-thumb { background: rgba(99,102,241,.38); border-radius: 4px; }
+
+    /* ─── prefers-reduced-motion ────────────────────────────────── */
+    @media(prefers-reduced-motion:reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════ NAVBAR ═══════════════════════════════════════════════ -->
+  <nav id="navbar">
+    <a href="#hero" class="nav-logo">
+      <img src="logo.png" alt="FlowMind" />
+      <span class="grad">FlowMind</span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#solutii">Soluții</a></li>
+      <li><a href="#ai-demo">Demo AI</a></li>
+      <li><a href="#servicii">Servicii</a></li>
+      <li><a href="#despre">Despre</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a href="#contact" class="nav-cta">Începe acum</a>
+    <button class="hamburger" id="hamburger" aria-label="Meniu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- ═══════ HERO ══════════════════════════════════════════════════ -->
+  <section id="hero">
+    <canvas id="hero-canvas" aria-hidden="true"></canvas>
+    <div class="mesh-orb mesh-1" aria-hidden="true"></div>
+    <div class="mesh-orb mesh-2" aria-hidden="true"></div>
+    <div class="mesh-orb mesh-3" aria-hidden="true"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="live-dot"></span>
+        Agenție AI — Produse digitale inteligente
+      </div>
+
+      <h1>
+        Automatizăm și scalăm<br>
+        afacerea ta cu <span class="grad">AI</span>
+      </h1>
+
+      <p class="sub">
+        Construim agenți vocali, chatbot-uri, automatizări și soluții AI complete
+        care înlocuiesc procese repetitive și generează rezultate reale.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#ai-demo" class="btn-primary">Vezi un agent vocal în acțiune →</a>
+        <a href="#contact" class="btn-ghost">Automatizează în 7 zile</a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-item"><div class="num">10x</div><div class="label">Productivitate crescută</div></div>
+        <div class="stat-item"><div class="num">70%</div><div class="label">Reducere costuri operaționale</div></div>
+        <div class="stat-item"><div class="num">24/7</div><div class="label">Disponibilitate automată</div></div>
+        <div class="stat-item"><div class="num">100%</div><div class="label">Soluții personalizate</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SOLUTIONS ════════════════════════════════════════════ -->
+  <section id="solutii">
+    <div class="container">
+      <div class="reveal">
+        <div class="section-label">Soluții AI</div>
+        <h2>Tot ce construim<br><span class="grad">pentru afacerea ta</span></h2>
+        <p style="max-width:520px;margin-top:.8rem;">
+          Nu vindem ore de muncă — livrăm produse complete care funcționează de la prima zi.
+        </p>
+      </div>
+
+      <div class="solutions-grid">
+        <!-- Card 1 -->
+        <div class="sol-card reveal">
+          <div class="sol-card-noise" aria-hidden="true"></div>
+          <div class="sol-icon ic-blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+            </svg>
+          </div>
+          <h3>Agenți Vocali AI</h3>
+          <p>Recepționiști telefonici și asistenți vocali care răspund, califică lead-uri și programează întâlniri non-stop.</p>
+          <span class="sol-tag">Voice AI</span>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="sol-card reveal">
+          <div class="sol-card-noise" aria-hidden="true"></div>
+          <div class="sol-icon ic-violet">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <h3>Chatbot-uri Inteligente</h3>
+          <p>Asistenți AI pentru suport clienți, vânzări și onboarding — pe website, WhatsApp sau Telegram.</p>
+          <span class="sol-tag">Chatbot</span>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="sol-card reveal">
+          <div class="sol-card-noise" aria-hidden="true"></div>
+          <div class="sol-icon ic-cyan">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          </div>
+          <h3>Automatizări Business</h3>
+          <p>Fluxuri de lucru automatizate care elimină task-urile repetitive și conectează toate tool-urile tale.</p>
+          <span class="sol-tag">Automation</span>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="sol-card reveal">
+          <div class="sol-card-noise" aria-hidden="true"></div>
+          <div class="sol-icon ic-pink">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="stroke:#f472b6">
+              <path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"/><line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+          </div>
+          <h3>Integrări AI</h3>
+          <p>Conectăm AI-ul cu CRM-ul, WhatsApp, email, ERP sau orice sistem existent în compania ta.</p>
+          <span class="sol-tag">Integration</span>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="sol-card reveal">
+          <div class="sol-card-noise" aria-hidden="true"></div>
+          <div class="sol-icon ic-blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/>
+            </svg>
+          </div>
+          <h3>Agenți AI Autonomi</h3>
+          <p>Agenți care execută task-uri complexe de sine stătător — cercetare, redactare, analiză, raportare.</p>
+          <span class="sol-tag">AI Agents</span>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="sol-card reveal">
+          <div class="sol-card-noise" aria-hidden="true"></div>
+          <div class="sol-icon ic-violet">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+          </div>
+          <h3>Analiză &amp; Raportare AI</h3>
+          <p>Sisteme care transformă datele brute în rapoarte clare, automate și acționabile pentru echipa ta.</p>
+          <span class="sol-tag">Analytics</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ AI VOICE SIMULATOR ════════════════════════════════════ -->
+  <section id="ai-demo">
+    <div class="container">
+      <div class="sim-header reveal">
+        <div class="section-label">Interactive Demo</div>
+        <h2>Testează <span class="grad">Agentul Vocal AI</span></h2>
+        <p style="max-width:460px;margin:.75rem auto 0;">
+          Simulează o conversație reală. Alege un scenariu sau scrie direct o întrebare.
+        </p>
+      </div>
+
+      <div class="sim-console reveal" id="simConsole" data-state="idle">
+        <!-- Topbar -->
+        <div class="sim-topbar">
+          <div class="sim-dots" aria-hidden="true">
+            <span class="sim-dot sim-dot-r"></span>
+            <span class="sim-dot sim-dot-y"></span>
+            <span class="sim-dot sim-dot-g"></span>
+          </div>
+          <div class="sim-topbar-title">FlowMind Voice Simulator — Demo Silențios v2.1</div>
+          <div class="sim-state-chip" id="stateChip">IDLE</div>
+        </div>
+
+        <!-- Body -->
+        <div class="sim-body">
+          <!-- Left: Orb + status -->
+          <div class="sim-left">
+            <div class="sim-left-top">
+              <div class="sim-orb-stage" aria-hidden="true">
+                <div class="sim-orb-ring sim-orb-ring-1"></div>
+                <div class="sim-orb-ring sim-orb-ring-2"></div>
+                <div class="sim-orb-ring sim-orb-ring-3"></div>
+                <div class="sim-orb-core">
+                  <div class="orb-bars">
+                    <div class="orb-bar"></div><div class="orb-bar"></div>
+                    <div class="orb-bar"></div><div class="orb-bar"></div>
+                    <div class="orb-bar"></div><div class="orb-bar"></div>
+                    <div class="orb-bar"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="sim-state-text" id="simStateText">Standby</div>
+              <div class="sim-badges">
+                <div class="sim-badge sim-badge-crm" id="badge-crm">
+                  <span class="sim-badge-dot"></span>CRM Updated
+                </div>
+                <div class="sim-badge sim-badge-cal" id="badge-cal">
+                  <span class="sim-badge-dot"></span>Calendar Sync
+                </div>
+              </div>
+            </div>
+            <div class="sim-metrics">
+              <div class="sim-metric"><span>Latency</span><span class="sim-metric-val">&lt; 340ms</span></div>
+              <div class="sim-metric"><span>Model</span><span class="sim-metric-val">FM-Voice-2.1</span></div>
+              <div class="sim-metric"><span>Uptime</span><span class="sim-metric-val">99.9%</span></div>
+            </div>
+          </div>
+
+          <div class="sim-divider"></div>
+
+          <!-- Right: Chat -->
+          <div class="sim-right">
+            <div class="sim-chat-area" id="simChat" role="log" aria-live="polite"></div>
+            <div class="sim-chips-area" id="simChips">
+              <button class="sim-chip" data-key="cine ești">Cine ești?</button>
+              <button class="sim-chip" data-key="cum mă poți ajuta">Cum mă poți ajuta?</button>
+              <button class="sim-chip" data-key="poți face programări">Poți face programări?</button>
+              <button class="sim-chip" data-key="cât costă">Cât costă?</button>
+            </div>
+            <div class="sim-input-area">
+              <div class="sim-input-wrap">
+                <input class="sim-input" id="simInput" type="text"
+                  placeholder="Scrie un mesaj sau alege un scenariu..." autocomplete="off" />
+                <button class="sim-send" id="simSend" aria-label="Trimite mesajul">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ SERVICES ══════════════════════════════════════════════ -->
+  <section id="servicii">
+    <div class="container">
+      <div class="reveal">
+        <div class="section-label">Servicii</div>
+        <h2>Cum livrăm<br><span class="grad">rezultate reale</span></h2>
+      </div>
+
+      <div class="services-wrap">
+        <div class="services-list">
+          <div class="srv-item reveal">
+            <div class="srv-num">01</div>
+            <div>
+              <h4>Analiză &amp; Strategie</h4>
+              <p>Identificăm procesele care pot fi automatizate și designăm soluția optimă pentru afacerea ta.</p>
+            </div>
+          </div>
+          <div class="srv-item reveal">
+            <div class="srv-num">02</div>
+            <div>
+              <h4>Dezvoltare Produs AI</h4>
+              <p>Construim de la zero: agenți vocali, chatbot-uri sau automatizări complexe, complet personalizat.</p>
+            </div>
+          </div>
+          <div class="srv-item reveal">
+            <div class="srv-num">03</div>
+            <div>
+              <h4>Integrare &amp; Testare</h4>
+              <p>Conectăm soluția în infrastructura ta existentă și testăm riguros înainte de lansare.</p>
+            </div>
+          </div>
+          <div class="srv-item reveal">
+            <div class="srv-num">04</div>
+            <div>
+              <h4>Lansare &amp; Suport</h4>
+              <p>Lansăm, monitorizăm și optimizăm continuu pentru a asigura performanță maximă pe termen lung.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="services-visual reveal">
+          <div class="flow-node">
+            <span class="flow-dot fd-blue"></span>
+            <span>Client sună recepționist AI</span>
+            <span class="flow-badge fb-live">Live</span>
+          </div>
+          <div class="flow-node">
+            <span class="flow-dot fd-violet"></span>
+            <span>Agent vocal califică lead-ul</span>
+            <span class="flow-badge fb-ai">AI</span>
+          </div>
+          <div class="flow-node">
+            <span class="flow-dot fd-cyan"></span>
+            <span>Date salvate automat în CRM</span>
+            <span class="flow-badge fb-ok">Auto</span>
+          </div>
+          <div class="flow-node">
+            <span class="flow-dot fd-green"></span>
+            <span>Email de confirmare trimis</span>
+            <span class="flow-badge fb-ok">Auto</span>
+          </div>
+          <div class="flow-node">
+            <span class="flow-dot fd-orange"></span>
+            <span>Raport zilnic generat AI</span>
+            <span class="flow-badge fb-ai">AI</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ ABOUT ══════════════════════════════════════════════════ -->
+  <section id="despre">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-text reveal">
+          <div class="section-label">Despre Noi</div>
+          <h2>Nu suntem o agenție obișnuită.<br><span class="grad">Suntem FlowMind.</span></h2>
+          <p style="margin-top:1rem;">
+            Suntem o agenție AI construită cu un singur scop: să livrăm produse AI care chiar funcționează și generează ROI măsurabil pentru clienții noștri.
+          </p>
+          <p>
+            Nu vindem promisiuni sau ore de consultanță. Construim soluții complete, personalizate, integrate direct în afacerea ta.
+          </p>
+
+          <div class="about-values">
+            <div class="value-card">
+              <svg class="value-icon" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <h4>Rezultate, nu promisiuni</h4>
+              <p>Livrăm produse care se validează singure prin impact real.</p>
+            </div>
+            <div class="value-card">
+              <svg class="value-icon" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              <h4>Viteză cu calitate</h4>
+              <p>Soluții funcționale rapid, fără compromisuri la calitate.</p>
+            </div>
+            <div class="value-card">
+              <svg class="value-icon" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <h4>Transparență totală</h4>
+              <p>Știi exact ce construim, de ce și cum evoluează.</p>
+            </div>
+            <div class="value-card">
+              <svg class="value-icon" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44L4.5 7A2.5 2.5 0 0 1 7 4.5"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44L19.5 7A2.5 2.5 0 0 0 17 4.5"/>
+              </svg>
+              <h4>AI aplicat, nu teoretic</h4>
+              <p>Soluții practice care rezolvă probleme reale de business.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-image reveal">
+          <div class="founder-photo-wrap">
+            <img src="poza.jpeg" alt="Darian Dinga — Founder FlowMind" class="founder-photo" />
+          </div>
+          <div class="about-tagline">
+            <div class="founder-name">Darian Dinga</div>
+            <div class="founder-role">Founder &amp; CEO</div>
+          </div>
+          <div class="pill-row">
+            <span class="pill">AI Strategy</span>
+            <span class="pill">Product Vision</span>
+            <span class="pill">Business Growth</span>
+            <span class="pill">AI Automation</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ CONTACT — Activation Portal ═════════════════════════ -->
+  <section id="contact">
+    <div class="container">
+
+      <div class="portal-grid">
+        <!-- Left: copy -->
+        <div class="portal-copy reveal">
+          <div class="section-label">Acces Exclusiv</div>
+          <h2>Activează recepționistul<br><span class="grad">tău AI</span></h2>
+          <p>Primele companii din fiecare industrie care aplică primesc setup-ul prioritar. Fără cozi, fără așteptare.</p>
+
+          <ul class="portal-features">
+            <li>Agentul vocal activ în 7 zile lucrătoare</li>
+            <li>Integrare completă cu CRM-ul existent</li>
+            <li>Suport dedicat pe toată durata</li>
+            <li>Fără costuri ascunse — prețuri fixe</li>
+          </ul>
+
+          <div class="portal-trust">
+            <div class="portal-trust-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <div class="portal-trust-text">
+              <strong>Răspuns garantat în 2h</strong>
+              Un consultant FlowMind te contactează direct, fără formulare intermediare.
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: portal form card -->
+        <div class="portal-card reveal" id="portalCard">
+          <div class="portal-card-header">
+            <span class="portal-step-label">Configurare inițială</span>
+            <div class="portal-step-dots">
+              <span class="psd psd-1"></span>
+              <span class="psd psd-2"></span>
+              <span class="psd psd-3"></span>
+            </div>
+          </div>
+
+          <form class="portal-form" id="theForm" novalidate>
+            <div class="pf-group">
+              <label for="f-company">Numele companiei *</label>
+              <input id="f-company" type="text" name="companie" placeholder="Ex: Clinica Dr. Ionescu" required />
+            </div>
+
+            <div class="pf-group">
+              <label for="f-volume">Volum estimat de apeluri</label>
+              <select id="f-volume" name="volum_apeluri">
+                <option value="">Selectează intervalul...</option>
+                <option>Sub 50 apeluri / zi</option>
+                <option>50 – 200 apeluri / zi</option>
+                <option>Peste 200 apeluri / zi</option>
+                <option>Nu știu încă</option>
+              </select>
+            </div>
+
+            <div class="pf-group">
+              <label>Contact preferat</label>
+              <div class="method-grid">
+                <label class="method-opt"><input type="radio" name="metoda" value="Telegram" /><span class="method-dot"></span>Telegram</label>
+                <label class="method-opt"><input type="radio" name="metoda" value="WhatsApp" /><span class="method-dot"></span>WhatsApp</label>
+                <label class="method-opt"><input type="radio" name="metoda" value="Email" /><span class="method-dot"></span>Email</label>
+                <label class="method-opt"><input type="radio" name="metoda" value="Telefon" /><span class="method-dot"></span>Telefon</label>
+              </div>
+            </div>
+
+            <div class="pf-group">
+              <label for="f-contact">Email sau număr de telefon *</label>
+              <input id="f-contact" type="text" name="contact" placeholder="contact@companie.ro sau +40 7xx xxx xxx" required />
+            </div>
+
+            <button type="submit" class="portal-cta" id="submitBtn">
+              <span id="ctaText">Solicită Acces →</span>
+              <span id="ctaSpinner" class="cta-spinner" style="display:none"></span>
+            </button>
+          </form>
+
+          <div class="portal-success" id="formSuccess">
+            <div class="success-ring">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <h3>Acces activat.</h3>
+            <p>Te contactăm în mai puțin de 2 ore pe canalul ales.<br>Mulțumim că ai ales FlowMind.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Minimal contact strip -->
+      <div class="contact-strip reveal">
+        <div class="ci-item">
+          <div class="ci-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+          contact@flowmind.ai
+        </div>
+        <div class="ci-item">
+          <div class="ci-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.6a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.77 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+          </div>
+          +40 771 828 025
+        </div>
+        <div class="ci-item">
+          <div class="ci-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          Răspuns în 2h
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════ FOOTER ═════════════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <img src="logo.png" alt="FlowMind" />
+        <span class="grad">FlowMind</span>
+      </div>
+      <p>© 2026 FlowMind Agency. Toate drepturile rezervate.</p>
+      <div class="footer-links">
+        <a href="#solutii">Soluții</a>
+        <a href="#servicii">Servicii</a>
+        <a href="#despre">Despre</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ── Hamburger ─────────────────────────────────────────────────── */
+    const ham = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+    ham.addEventListener('click', () => navLinks.classList.toggle('open'));
+    navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
+
+    /* ── Navbar shadow on scroll ───────────────────────────────────── */
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.style.boxShadow = window.scrollY > 20 ? '0 4px 40px rgba(0,0,0,.5)' : 'none';
+    });
+
+    /* ── Scroll reveal ─────────────────────────────────────────────── */
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      el.style.transitionDelay = `${(i % 4) * 0.08}s`;
+      revealObs.observe(el);
+    });
+
+    /* ── Active nav highlight ──────────────────────────────────────── */
+    const sections = document.querySelectorAll('section[id]');
+    const navAs = document.querySelectorAll('.nav-links a');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => { if (window.scrollY >= s.offsetTop - 130) current = s.id; });
+      navAs.forEach(a => { a.style.color = a.getAttribute('href') === '#' + current ? '#fff' : ''; });
+    }, { passive: true });
+
+    /* ── Hero stat counter ─────────────────────────────────────────── */
+    function animateCount(el, target, suffix) {
+      let start = null;
+      const duration = 1800;
+      const step = (ts) => {
+        if (!start) start = ts;
+        const p = Math.min((ts - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.floor(ease * target) + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+    const statsObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const nums = e.target.querySelectorAll('.num');
+          [['10','x'],['70','%'],['24','/7'],['100','%']].forEach(([t,s], i) => {
+            if (s === '/7') setTimeout(() => { nums[i].textContent = '24/7'; }, 900);
+            else animateCount(nums[i], parseInt(t), s);
+          });
+          statsObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    const heroStats = document.querySelector('.hero-stats');
+    if (heroStats) statsObs.observe(heroStats);
+
+    /* ── Hero canvas particles ─────────────────────────────────────── */
+    (function() {
+      const canvas = document.getElementById('hero-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let W, H, particles;
+      const N = 55, LINK_DIST = 130, SPEED = 0.3;
+
+      function resize() {
+        W = canvas.width  = canvas.offsetWidth;
+        H = canvas.height = canvas.offsetHeight;
+      }
+      function mkParticle() {
+        return {
+          x: Math.random() * W, y: Math.random() * H,
+          vx: (Math.random() - .5) * SPEED, vy: (Math.random() - .5) * SPEED,
+          r: Math.random() * 1.4 + .5
+        };
+      }
+      function init() { resize(); particles = Array.from({length: N}, mkParticle); }
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        for (let i = 0; i < N; i++) {
+          const p = particles[i];
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0 || p.x > W) p.vx *= -1;
+          if (p.y < 0 || p.y > H) p.vy *= -1;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(165,180,252,0.35)';
+          ctx.fill();
+          for (let j = i + 1; j < N; j++) {
+            const q = particles[j];
+            const dx = p.x - q.x, dy = p.y - q.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < LINK_DIST) {
+              const alpha = (1 - dist / LINK_DIST) * 0.12;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
+              ctx.strokeStyle = `rgba(99,102,241,${alpha})`;
+              ctx.lineWidth = .8;
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+      window.addEventListener('resize', () => { resize(); particles = Array.from({length: N}, mkParticle); });
+      init(); draw();
+    })();
+
+
+    /* ── Voice AI Simulator — State Machine ────────────────────────── */
+    (function() {
+      const consoleEl = document.getElementById('simConsole');
+      if (!consoleEl) return;
+
+      const chatEl    = document.getElementById('simChat');
+      const chipsEl   = document.getElementById('simChips');
+      const inputEl   = document.getElementById('simInput');
+      const sendEl    = document.getElementById('simSend');
+      const chipLabel = document.getElementById('stateChip');
+      const stateText = document.getElementById('simStateText');
+      const badgeCrm  = document.getElementById('badge-crm');
+      const badgeCal  = document.getElementById('badge-cal');
+
+      let busy = false;
+
+      /* ── State machine ── */
+      const STATES = {
+        idle:       { chip: 'IDLE',       text: 'Standby' },
+        listening:  { chip: 'LISTENING',  text: 'Ascultă...' },
+        processing: { chip: 'PROCESSING', text: 'Analizez...' },
+        responding: { chip: 'RESPONDING', text: 'Răspunde' },
+      };
+      function setState(s) {
+        consoleEl.dataset.state = s;
+        chipLabel.textContent = STATES[s].chip;
+        stateText.textContent = STATES[s].text;
+      }
+
+      /* ── Knowledge base ── */
+      const KB = {
+        'cine ești': {
+          reply: 'Sunt recepționistul AI FlowMind — antrenat să preia apelurile companiei tale 24/7, să califice lead-urile și să actualizeze automat CRM-ul. Practic, sunt primul angajat care nu doarme niciodată.',
+          badge: null
+        },
+        'cum mă poți ajuta': {
+          reply: 'Pot prelua toate apelurile inbound ale afacerii tale: calific lead-urile după criterii definite de tine, programez întâlniri direct în calendar, trimit SMS-uri de confirmare și salvez datele automat în CRM — totul fără intervenție umană.',
+          badge: 'crm'
+        },
+        'poți face programări': {
+          reply: 'Da. Mă integrez cu Google Calendar, Calendly și orice sistem de scheduling. Când un client sună și dorește o programare, verific disponibilitatea în timp real și confirm direct în apel — nicio dublă rezervare, nicio eroare umană.',
+          badge: 'cal'
+        },
+        'cât costă': {
+          reply: 'Prețul variază în funcție de volumul de apeluri și complexitatea integrărilor. Fiecare soluție e custom-built. Cel mai bun pas: solicită o sesiune de evaluare gratuită — îți facem un calcul exact al ROI-ului în 30 de minute.',
+          badge: null
+        },
+      };
+
+      const KW = [
+        { re: /salut|hello|bun[aă]|hey/i,                  r: KB['cine ești'] },
+        { re: /program[aă]r|calendar|rezerv|appointment/i,  r: KB['poți face programări'] },
+        { re: /crm|hubspot|salesforce|pipedrive/i,          r: { reply: 'Mă integrez nativ cu HubSpot, Salesforce, Pipedrive și orice CRM cu API. Datele din fiecare apel se sincronizează automat, fără copy-paste manual.', badge: 'crm' } },
+        { re: /whatsapp|telegram|sms|mesaj/i,               r: { reply: 'Da, pot trimite mesaje automate de follow-up pe WhatsApp sau SMS după fiecare apel — confirmare, link de programare sau orice template definit de tine.', badge: null } },
+        { re: /ajut|ce po[tț]i|servi[ct]|funcion/i,        r: KB['cum mă poți ajuta'] },
+        { re: /cost|pre[tț]|tarif|buget|pla[tn]/i,         r: KB['cât costă'] },
+      ];
+
+      const FALLBACK = 'Aici sunt doar într-un mediu de testare limitat (Demo Silențios). Nu sunt programat să răspund la asta acum. Pentru o conversație reală, solicită o invitație pe Telegram mai jos!';
+
+      function resolve(text) {
+        const t = text.toLowerCase().trim();
+        if (KB[t]) return KB[t];
+        for (const k of KW) if (k.re.test(t)) return k.r;
+        return { reply: FALLBACK, badge: null };
+      }
+
+      /* ── Chat helpers ── */
+      function addMsg(role, text, animate) {
+        const w = document.createElement('div');
+        w.className = `sim-msg sim-msg-${role}`;
+        w.innerHTML = `<div class="sim-msg-label">${role === 'user' ? 'Tu' : 'FlowMind AI'}</div>
+          <div class="sim-bubble sim-bubble-${role}">${animate ? '' : text}</div>`;
+        chatEl.appendChild(w);
+        chatEl.scrollTop = chatEl.scrollHeight;
+        return w.querySelector('.sim-bubble');
+      }
+
+      function typewrite(el, text) {
+        return new Promise(done => {
+          let i = 0;
+          (function tick() {
+            if (i < text.length) {
+              el.textContent += text[i++];
+              chatEl.scrollTop = chatEl.scrollHeight;
+              setTimeout(tick, 20 + Math.random() * 12);
+            } else { done(); }
+          })();
+        });
+      }
+
+      function showHint(text) {
+        const h = document.createElement('div');
+        h.className = 'sim-hint';
+        h.textContent = text;
+        chatEl.appendChild(h);
+        chatEl.scrollTop = chatEl.scrollHeight;
+        requestAnimationFrame(() => h.classList.add('show'));
+        return h;
+      }
+
+      function flashBadge(type) {
+        const el = type === 'crm' ? badgeCrm : badgeCal;
+        if (!el) return;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 4200);
+      }
+
+      function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+      /* ── Main send sequence ── */
+      async function send(text) {
+        if (busy || !text.trim()) return;
+        busy = true;
+        const { reply, badge } = resolve(text);
+
+        inputEl.disabled = true;
+        sendEl.disabled  = true;
+        chipsEl.classList.add('disabled');
+        inputEl.value = '';
+
+        addMsg('user', text);
+
+        // Step 1 — Processing (700ms)
+        setState('processing');
+        await sleep(700);
+
+        const hint = showHint('Analyzing intent...');
+        await sleep(780);
+        hint.remove();
+
+        // Step 2 — Typing dots (900ms)
+        const dots = document.createElement('div');
+        dots.className = 'sim-typing';
+        dots.innerHTML = '<span></span><span></span><span></span>';
+        chatEl.appendChild(dots);
+        chatEl.scrollTop = chatEl.scrollHeight;
+        await sleep(920);
+        dots.remove();
+
+        // Step 3 — Typewriter reveal
+        setState('responding');
+        const bubble = addMsg('bot', '', true);
+        await typewrite(bubble, reply);
+
+        // Step 4 — Badge flash
+        if (badge) { await sleep(260); flashBadge(badge); }
+
+        await sleep(380);
+        setState('idle');
+
+        inputEl.disabled = false;
+        sendEl.disabled  = false;
+        chipsEl.classList.remove('disabled');
+        busy = false;
+        inputEl.focus();
+      }
+
+      /* ── Input state listeners ── */
+      inputEl.addEventListener('focus', () => { if (!busy) setState('listening'); });
+      inputEl.addEventListener('blur',  () => { if (!busy) setState('idle'); });
+      inputEl.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(inputEl.value); } });
+      sendEl.addEventListener('click', () => send(inputEl.value));
+      chipsEl.querySelectorAll('.sim-chip').forEach(c => c.addEventListener('click', () => { if (!busy) send(c.dataset.key); }));
+
+      /* ── Initial greeting ── */
+      (async function() {
+        await sleep(900);
+        setState('responding');
+        const b = addMsg('bot', '', true);
+        await typewrite(b, 'Bună! Sunt recepționistul AI FlowMind. Poți testa câteva scenarii rapide folosind butoanele de mai jos sau scrie direct o întrebare.');
+        setState('idle');
+      })();
+    })();
+
+    /* ── Activation portal form ────────────────────────────────────── */
+    document.getElementById('theForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn     = document.getElementById('submitBtn');
+      const ctaText = document.getElementById('ctaText');
+      const spinner = document.getElementById('ctaSpinner');
+      const form    = this;
+
+      const companie = form.querySelector('[name="companie"]').value.trim();
+      const contact  = form.querySelector('[name="contact"]').value.trim();
+      if (!companie || !contact) {
+        if (!companie) form.querySelector('[name="companie"]').style.borderColor = '#f87171';
+        if (!contact)  form.querySelector('[name="contact"]').style.borderColor  = '#f87171';
+        return;
+      }
+
+      /* Activating state */
+      btn.disabled = true;
+      btn.classList.add('activating');
+      ctaText.textContent = 'Se activează...';
+      spinner.style.display = 'block';
+
+      const metoda = form.querySelector('[name="metoda"]:checked');
+      const data = {
+        companie:      companie,
+        volum_apeluri: form.querySelector('[name="volum_apeluri"]').value,
+        metoda_contact: metoda ? metoda.value : 'Nespecificat',
+        contact:       contact,
+      };
+
+      fetch('https://flowmind-wjp7.onrender.com/webhook', {
+        method: 'POST', body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+      }).catch(() => {});
+
+      await new Promise(r => setTimeout(r, 2200));
+      form.style.display = 'none';
+      document.getElementById('formSuccess').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
